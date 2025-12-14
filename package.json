@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "dependencies": {
+    "@supabase/supabase-js": "^2.87.1",
     "accepts": "^2.0.0",
     "base64id": "^2.0.0",
     "basic-auth": "^2.0.1",
