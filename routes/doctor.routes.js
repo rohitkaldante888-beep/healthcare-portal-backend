@@ -1,10 +1,10 @@
-
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const doctor = require("../controllers/doctor.controller");
-// const auth = require("../middleware/auth.middleware");
+const doctorController = require('../controllers/doctor.controller');
+const auth = require('../middlewares/auth.middleware');
 
-router.get("/", doctor.getDoctors);
+router.use(auth(['DOCTOR', 'PATIENT']));
 
+router.get('/', doctorController.getDoctors);
 
 module.exports = router;

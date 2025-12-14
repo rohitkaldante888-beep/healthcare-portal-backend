@@ -1,17 +1,20 @@
 const router = require('express').Router();
-// const auth = require('../middleware/auth.middleware');
+const auth = require('../middlewares/auth.middleware');
 const controller = require('../controllers/onboarding.controller');
 
-// router.use(auth);
+// ✅ Only PATIENT can access onboarding
+router.use(auth(['PATIENT']));
 
-router.get('/personal', controller.getPersonal);
-router.post('/personal', controller.savePersonal);
+// Step 1 – Personal
+router.get('/personal/:patientId', controller.getPersonal);
+router.post('/personal/:patientId', controller.savePersonal);
 
+// Step 2 – Medical
+router.get('/medical/:patientId', controller.getMedical);
+router.post('/medical/:patientId', controller.saveMedical);
 
-router.get('/medical', controller.getMedical);
-router.post('/medical', controller.saveMedical);
-
-router.get('/insurance', controller.getInsurance);
-router.post('/insurance', controller.saveInsurance);
+// Step 3 – Insurance
+router.get('/insurance/:patientId', controller.getInsurance);
+router.post('/insurance/:patientId', controller.saveInsurance);
 
 module.exports = router;

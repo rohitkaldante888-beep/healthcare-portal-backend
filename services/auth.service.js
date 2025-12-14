@@ -25,25 +25,35 @@ const signIn = async ({ email, password }) => {
     role: user.role,
   });
 
-  // get onboarding status
-  const { data: patient } = await supabase
-    .from('patients')
-    .select('status, last_step_completed')
-    .eq('user_id', user.id)
-    .single();
+  // get onboarding status (for patients)
+  let onboardingStatus = null;
+  if (user.role === 'PATIENT') {
+    const { data: patient } = await supabase
+      .from('patients')
+      .select('status, last_step_completed')
+      .eq('user_id', user.id)
+      .single();
+
+    onboardingStatus =
+      patient.status === 'completed'
+        ? 'completed'
+        : `step${patient.last_step_completed + 1}`;
+  }
 
   return {
     token,
-    role: user.role,
-    onboardingStatus:
-      patient.status === 'completed'
-        ? 'completed'
-        : `step${patient.last_step_completed + 1}`
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      onboardingStatus,
+    },
   };
 };
 
 
 const signUp = async ({ email, password }) => {
+  // 1. Check existing user
   const { data: existingUser } = await supabase
     .from('users')
     .select('id')
@@ -70,26 +80,36 @@ const signUp = async ({ email, password }) => {
 
   if (error) throw error;
 
-  await supabase.from('patients').insert([
-    {
-      user_id: user.id,
-      status: 'draft',
-      last_step_completed: 0
-    }
-  ]);
+  // 4. Create patient profile
+  const { data: patient, error: patientError } = await supabase
+    .from('patients')
+    .insert([
+      {
+        user_id: user.id,
+        status: 'draft',
+        last_step_completed: 0
+      }
+    ])
+    .select()
+    .single();
 
+  if (patientError) throw patientError;
+
+  // 5. Generate JWT
   const token = generateToken({
     id: user.id,
     email: user.email,
-    role: user.role,
+    role: user.role
   });
 
   return {
     token,
     role: user.role,
+    patientId: patient.id,
     onboardingStatus: 'step1'
   };
 };
+
 
 
 

@@ -1,27 +1,27 @@
 const jwt = require('jsonwebtoken');
 
-const authMiddleware = (roles = []) => {
+const authMiddleware = (allowedRoles = []) => {
   return (req, res, next) => {
     try {
       const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(401).json({ error: 'No token provided' });
+
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authorization token missing' });
       }
 
       const token = authHeader.split(' ')[1];
-      if (!token) {
-        return res.status(401).json({ error: 'Invalid token format' });
-      }
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      if (roles.length && !roles.includes(decoded.role)) {
+      if (
+        allowedRoles.length > 0 &&
+        !allowedRoles.includes(decoded.role)
+      ) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
       req.user = decoded;
-
       next();
-    } catch (err) {
+    } catch (error) {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
   };

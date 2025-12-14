@@ -22,7 +22,7 @@ app.use(cors());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/onboarding', onboardingRoutes);
-app.use('/api/doctor',doctorRoutes)
+app.use('/api/doctors',doctorRoutes)
 
 
 // I have check supabase is connected or not 
