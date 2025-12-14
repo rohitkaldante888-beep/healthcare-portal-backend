@@ -4,6 +4,7 @@ const generateToken = require('../utils/generateToken.js');
 
 
 const signIn = async ({ email, password }) => {
+  // 1. Get user
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
@@ -14,25 +15,34 @@ const signIn = async ({ email, password }) => {
     throw new Error('Invalid credentials');
   }
 
+  // 2. Verify password
   const isValid = await bcrypt.compare(password, user.password_hash);
   if (!isValid) {
     throw new Error('Invalid credentials');
   }
 
+  // 3. Generate JWT
   const token = generateToken({
     id: user.id,
     email: user.email,
     role: user.role,
   });
 
-  // get onboarding status (for patients)
   let onboardingStatus = null;
+  let patientId = null;
+
   if (user.role === 'PATIENT') {
-    const { data: patient } = await supabase
+    const { data: patient, error: patientError } = await supabase
       .from('patients')
-      .select('status, last_step_completed')
+      .select('id, status, last_step_completed')
       .eq('user_id', user.id)
       .single();
+
+    if (patientError || !patient) {
+      throw new Error('Patient record not found');
+    }
+
+    patientId = patient.id;
 
     onboardingStatus =
       patient.status === 'completed'
@@ -46,10 +56,12 @@ const signIn = async ({ email, password }) => {
       id: user.id,
       email: user.email,
       role: user.role,
+      patientId : patientId,         
       onboardingStatus,
     },
   };
 };
+
 
 
 const signUp = async ({ email, password }) => {
