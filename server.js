@@ -7,6 +7,9 @@ dotenv.config();
 
 // routing import here 
 const authRoutes = require('./routes/authRoutes.js');
+const onboardingRoutes = require('./routes/onboarding.routes.js');
+const doctorRoutes = require('./routes/doctor.routes.js')
+
 
 
 
@@ -18,6 +21,8 @@ app.use(cors());
 
 
 app.use('/api/auth', authRoutes);
+app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/doctor',doctorRoutes)
 
 
 // I have check supabase is connected or not 
